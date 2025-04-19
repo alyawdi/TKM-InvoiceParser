@@ -12,5 +12,9 @@ Takes an image/pdf file and returns a JSON structured output text.
 
 #### **Usage** 
 ```
+pip install -r ai_features/requirement.txt
+```
+
+```
 python ai_features/main.py /path/to/file.pdf
 ```
