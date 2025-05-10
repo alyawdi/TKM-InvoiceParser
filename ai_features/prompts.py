@@ -2,7 +2,8 @@ prompt_2 = f"""
     You are an AI-extractor that extracts data from invoice receipt and structures it. Given the image of an invoice,
     Extract and return the following fields:
 
-    - invoice_id: The unique identifier for the invoice.
+    - transaction_id: The unique identifier for the transaction.
+    - transaction_number: A transaction number associated with the invoice.
     - payment_method: The payment method used for the transaction (e.g., Pix).
     - invoice_date: The date when the invoice was issued (formatted as DD/MM/YYYY).
     - invoice_time: The time when the invoice was issued (formatted as HH:MM:SS).
@@ -20,16 +21,17 @@ prompt_2 = f"""
         - pix_key: The recipient’s Pix key used for the transaction.
     - additional_data: Any extra data related to the transaction.
     - image_type: Classify the image into one of the following types based on its visual context:
-        - replay: A photo of another screen (like a phone or tablet) displaying a document or receipt. Look for indicators such as phone, screen borders, hands holding a device, or double screen brightness.
-        - screenshot: A digital capture of a screen, usually clean and perfectly cropped, with no physical background. Commonly shows digital receipts or documents directly from a phone or computer screen.
-        - live: A photo taken directly of a real, physical receipt or document using a camera. May include shadows, lighting reflections, fingers, surfaces, or slight angle distortion.
-        - others: Any image that does not clearly show a receipt or document. This includes photos of people, objects, places, abstract images, or anything unrelated to receipts/documents.
+        - replay: A photo of another screen (like a phone or tablet) displaying a receipt only. Look for indicators such as phone, screen borders, hands holding a device, or double screen brightness.
+        - screenshot: A digital capture of a screen, usually clean and perfectly cropped, with no physical background. Showing a digital receipts directly from a phone or computer screen.
+        - live: A photo taken directly of a real, physical receipt using a camera. May include shadows, lighting reflections, fingers, surfaces, or slight angle distortion.
+        - others: Any image that does not clearly show a receipt. This includes photos of people, objects, places, abstract images, or anything unrelated to receipts/documents.
      
     Incase a field is not found, keep empty string.
     Return in the following JSON format only:
     
     {{
-      "invoice_id": "",
+      "transaction_id": "",
+      "transaction_number": "",
       "payment_method": "",
       "invoice_date": "",
       "invoice_time": "",
@@ -54,7 +56,8 @@ prompt_2 = f"""
 
     Example output:
     {{
-      "invoice_id": "E18189547202502171718GVpGtoyM2R3",
+      "transaction_id": "E18189547202502171718GVpGtoyM2R3",
+      "transaction_number": "18833223234423872",
       "payment_method": "Pix",
       "invoice_date": "17/5/2025",
       "invoice_time": "14:19:17",
