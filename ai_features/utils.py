@@ -1,9 +1,9 @@
 from prompts import prompt_2
 import google.generativeai as genai
 from pdf2image import convert_from_path
-
+import streamlit as st
 vision_model = genai.GenerativeModel(model_name="models/gemini-2.0-flash")
-genai.configure(api_key="AIzaSyCxHZzWgfpgT91e-ReTrqioroVenes4Ato")
+genai.configure(api_key=st.secrets["key"])
 
 # Global token tracking
 class TokenTracker:

@@ -1,0 +1,4 @@
+.streamlit/secrets.toml
+venv
+# Ignore the secrets file
+__pycache__
