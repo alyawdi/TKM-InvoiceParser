@@ -5,16 +5,17 @@ from utils import *
 def process_file(file_path):
     _, file_extension = os.path.splitext(file_path)  # Fixed: removed the asterisk
     file_extension = file_extension.lower()
+    filename = os.path.basename(file_path)
     response = None
     
     if file_extension in [".jpg", ".jpeg", ".png"]:
         with open(file_path, "rb") as image_file:
             image_data = image_file.read()
-        response = gemini_img_ocr(image_data, file_extension)
+        response = gemini_img_ocr(image_data, file_extension, filename)
     elif file_extension == ".pdf":
         with open(file_path, "rb") as pdf_file:
             pdf_data = pdf_file.read()
-        response = gemini_pdf_ocr(pdf_data)
+        response = gemini_pdf_ocr(pdf_data, filename)
     else:
         # print("Unsupported file type:", file_extension)
         return None
