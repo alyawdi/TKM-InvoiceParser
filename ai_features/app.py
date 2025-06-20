@@ -100,7 +100,18 @@ def flatten_json_result(json_result):
     
     return flattened
 
-st.set_page_config(page_title="File Processor", layout="centered")
+def filter_dataframe_by_image_type(df, selected_filter):
+    """Filter dataframe based on selected image type"""
+    if selected_filter == "All":
+        return df
+    elif selected_filter == "Others":
+        # Filter for image types that are not replay, screenshot, or live
+        return df[~df['image_type'].str.lower().isin(['replay', 'screenshot', 'live'])]
+    else:
+        # Filter for specific image type (case insensitive)
+        return df[df['image_type'].str.lower() == selected_filter.lower()]
+
+st.set_page_config(page_title="File Processor", layout="wide")
 st.title("📄 Upload Images, PDFs, or a Folder (ZIP)")
 
 # Initialize session state to persist results
@@ -240,48 +251,78 @@ if st.session_state.processing_complete and st.session_state.results:
     # Convert results to DataFrame
     df = pd.DataFrame(st.session_state.results)
     
-    # Create the editable data editor
-    edited_df = st.data_editor(
-        df,
-        use_container_width=True,
-        num_rows="dynamic",
-        key="editable_results"
+    # Add filter section above the dataframe
+    st.markdown("### 🔍 Filter Results")
+    
+    # Create filter options
+    filter_options = ["All", "Replay", "Screenshot", "Live", "Others"]
+    
+    # Create columns for filter layout
+    filter_col1, filter_col2, filter_col3 = st.columns([2, 1, 3])
+    
+    with filter_col1:
+        selected_filter = st.selectbox(
+            "Filter by Image Type:",
+            options=filter_options,
+            index=0,  # Default to "All"
+            key="image_type_filter"
+        )
+    
+    # Filter the dataframe
+    filtered_df = filter_dataframe_by_image_type(df, selected_filter)
+    
+    # Show count of filtered results
+    with filter_col2:
+        st.metric("Showing", f"{len(filtered_df)}/{len(df)}")
+    
+    # Display the filtered results in a dataframe
+    st.markdown("### 📊 Results")
+    st.dataframe(
+        filtered_df,
+        use_container_width=True
     )
     
-    # Download buttons
-    col1, col2, col3 = st.columns([1, 1, 1])
+    # Download buttons - displayed vertically
+    st.markdown("### 📥 Download Options")
     
-    with col1:
-        # Download Excel
-        excel_buffer = BytesIO()
-        with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
-            edited_df.to_excel(writer, index=False, sheet_name='Results')
-        excel_buffer.seek(0)
-        
-        st.download_button(
-            label="📥 Download Excel",
-            data=excel_buffer,
-            file_name="results.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+    # Note about downloads
+    if selected_filter != "All":
+        st.info(f"💡 Downloads will include **filtered results only** ({selected_filter})")
     
-    with col2:
-        # Download CSV
-        csv_buffer = StringIO()
-        edited_df.to_csv(csv_buffer, index=False)
-        csv_buffer.seek(0)
-        
-        st.download_button(
-            label="📄 Download CSV",
-            data=csv_buffer.getvalue(),
-            file_name="results.csv",
-            mime="text/csv"
-        )
+    # Download Excel (filtered data)
+    excel_buffer = BytesIO()
+    with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
+        filtered_df.to_excel(writer, index=False, sheet_name='Results')
+    excel_buffer.seek(0)
     
-    with col3:
-        # Process new files button
-        if st.button("🔄 Process New Files"):
-            st.session_state.results = []
-            st.session_state.processing_complete = False
-            reset_token_tracker()  # Reset token tracking
-            st.rerun()
+    download_filename_excel = f"results_{selected_filter.lower()}.xlsx" if selected_filter != "All" else "results_all.xlsx"
+    
+    st.download_button(
+        label="📥 Download Excel",
+        data=excel_buffer,
+        file_name=download_filename_excel,
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=True
+    )
+    
+    # Download CSV (filtered data)
+    csv_buffer = StringIO()
+    filtered_df.to_csv(csv_buffer, index=False)
+    csv_buffer.seek(0)
+    
+    download_filename_csv = f"results_{selected_filter.lower()}.csv" if selected_filter != "All" else "results_all.csv"
+    
+    st.download_button(
+        label="📄 Download CSV",
+        data=csv_buffer.getvalue(),
+        file_name=download_filename_csv,
+        mime="text/csv",
+        use_container_width=True
+    )
+    
+    # Process new files button
+    if st.button("🔄 Process New Files", use_container_width=True):
+        st.session_state.results = []
+        st.session_state.processing_complete = False
+        reset_token_tracker()  # Reset token tracking
+        st.rerun()
